@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
+import { LeadStatus } from "@prisma/client";
 
 // Admin: update lead status (and optionally visitDate/message)
 export async function PATCH(
@@ -30,7 +31,7 @@ export async function PATCH(
   };
 
   const data: {
-    status?: any;
+    status?: LeadStatus;
     visitDate?: Date | null;
     message?: string | null;
   } = {};
@@ -43,7 +44,7 @@ export async function PATCH(
         { status: 400 }
       );
     }
-    data.status = s as any;
+    data.status = s as LeadStatus;
   }
 
   if (visitDate !== undefined) {

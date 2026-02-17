@@ -48,8 +48,6 @@ function getKeywordMeta(keyword: string) {
 }
 
 // ——— Dynamic SEO Metadata ———
-export const dynamic = "force-dynamic";
-
 type Props = { params: Promise<{ keyword: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
