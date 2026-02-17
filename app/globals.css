@@ -1,0 +1,11 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+@layer base {
+  body {
+    @apply bg-neutral-950 text-neutral-300 font-[family-name:var(--font-lato)];
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply text-white font-[family-name:var(--font-playfair)];
+  }
+}

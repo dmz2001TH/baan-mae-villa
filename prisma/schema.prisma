@@ -1,0 +1,156 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// 1. ระบบสมาชิกที่ปลอดภัย
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  password      String    // เก็บแบบ Hashed Password เท่านั้น
+  role          String    @default("USER") // USER หรือ ADMIN
+  createdAt     DateTime  @default(now())
+}
+
+// 2. ระบบจัดการโครงการบ้าน
+model Villa {
+  id              String   @id @default(cuid())
+  name            String
+  slug            String   @unique
+  location        String
+  price           Float
+  bedrooms        Int
+  bathrooms       Int
+  description     String?  @db.Text
+  images          String[] // Array of image URLs
+  isFeatured      Boolean  @default(false)
+  status          String   @default("AVAILABLE") // AVAILABLE, SOLD_OUT
+  discountPercentage Int    @default(0) // Discount percentage (0-100)
+  // Multi-language (optional; fallback to name/description)
+  nameTh          String?  @db.Text
+  nameEn          String?  @db.Text
+  nameCn          String?  @db.Text
+  descriptionTh   String?  @db.Text
+  descriptionEn   String?  @db.Text
+  descriptionCn   String?  @db.Text
+  locationEn      String?  @db.Text
+  locationCn      String?  @db.Text
+  featuresEn      String?  @db.Text
+  featuresCn      String?  @db.Text
+  facilities      String[] // e.g. ["pool", "parking", "near_beach"]
+  mapEmbedUrl     String?  @db.Text // Google Maps embed iframe src
+  threeDTourUrl   String?  @db.Text // 3D Home Tour embed URL
+  floorPlanUrl    String?  @db.Text // Floor plan image or embed URL
+  videoTourUrl    String?  @db.Text // Video tour URL (e.g. YouTube embed)
+  latitude        Float?   // Latitude for map location
+  longitude       Float?   // Longitude for map location
+  nearbyPlaces    Json?    // Array of { name, distance, type }
+  views           Int      @default(0) // ยอดรวมการเข้าดูวิลล่า
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  leads           Lead[]
+  bookings        Booking[]
+}
+
+// 3. Hero slides (custom marketing banners, independent of villas)
+model HeroSlide {
+  id          String   @id @default(cuid())
+  imageUrl    String   @db.Text
+  titleTh     String?  @db.Text
+  titleEn     String?  @db.Text
+  titleCn     String?  @db.Text
+  subtitleTh  String?  @db.Text
+  subtitleEn  String?  @db.Text
+  subtitleCn  String?  @db.Text
+  linkUrl     String?  @db.Text  // optional CTA link (e.g. /villas/xxx or external)
+  order       Int      @default(0) // lower = first
+  clicks      Int      @default(0) // จำนวนการคลิกของสไลด์ (โปรโมชั่นไหนเวิร์ค)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// 4. Site content for inline edit (home page text/images, section visibility)
+model SiteContent {
+  id        String   @id @default(cuid())
+  key       String   @unique // e.g. 'why_choose_us_title', 'why_us_1_desc'
+  contentTh String?  @db.Text
+  contentEn String?  @db.Text
+  contentCn String?  @db.Text
+  imageUrl  String?  @db.Text
+  visible   Boolean  @default(true) // section toggle (e.g. hide Why Choose Us)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SiteSettings {
+  id           String  @id @default("site-settings")
+  phoneNumber  String?
+  lineId       String?
+  lineUrl      String?
+  facebookUrl  String?
+  whatsapp     String?
+  updatedAt    DateTime @updatedAt
+}
+
+model Setting {
+  key       String   @id
+  value     String?  @db.Text
+  updatedAt DateTime @updatedAt
+}
+
+// 7. Blog / Articles for SEO
+model Article {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  content     String   @db.Text   // HTML content from rich text editor
+  coverImage  String?  @db.Text   // Cover image URL
+  excerpt     String?  @db.Text   // Short summary for listing cards
+  isPublished Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+enum LeadStatus {
+  PENDING
+  CONTACTED
+  CLOSED
+}
+
+model Lead {
+  id        String     @id @default(uuid())
+  name      String
+  tel       String
+  lineId    String?
+  visitDate DateTime?
+  message   String?
+  villaId   String?
+  villa     Villa?     @relation(fields: [villaId], references: [id])
+  status    LeadStatus @default(PENDING)
+  createdAt DateTime   @default(now())
+}
+
+model SearchQuery {
+  id             String   @id @default(cuid())
+  query          String   @unique
+  count          Int      @default(1)
+  lastSearchedAt DateTime @default(now())
+}
+
+model Booking {
+  id        String   @id @default(cuid())
+  villaId   String
+  villa     Villa     @relation(fields: [villaId], references: [id], onDelete: Cascade)
+  startDate DateTime
+  endDate   DateTime
+  status    String   @default("BOOKED") // BOOKED, AVAILABLE, MAINTENANCE
+  notes     String?  @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
