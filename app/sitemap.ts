@@ -1,8 +1,10 @@
 import { MetadataRoute } from 'next'
 import { prisma } from '@/lib/prisma'
 
+export const dynamic = 'force-dynamic'
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = 'https://www.baanmaevilla.com' // ⚠️ อย่าลืมเปลี่ยนเป็นโดเมนจริงเมื่อมีแล้ว
+  const baseUrl = 'https://www.baanmaevilla.com' // อย่าลืมเปลี่ยนเป็นโดเมนจริงเมื่อมีแล้ว
 
   // 1. ดึงข้อมูล Villa
   const villas = await prisma.villa.findMany({
