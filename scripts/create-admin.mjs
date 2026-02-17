@@ -4,18 +4,17 @@ import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import dotenv from 'dotenv';
 
-// Load .env file
-dotenv.config({ path: '.env' });
+dotenv.config();
 
-// Check DATABASE_URL
-if (!process.env.DATABASE_URL) {
-  console.error('❌ DATABASE_URL not found in .env file');
-  console.error('   Please add DATABASE_URL=postgresql://... to your .env file');
-  process.exit(1);
-}
-
-// Simple PrismaClient constructor (Prisma 7 will auto-read DATABASE_URL from env)
-const prisma = new PrismaClient();
+// ผมใส่ URL ของ Supabase ที่ดึงมาจากโปรเจกต์ของคุณให้เลยครับ
+// ตัวแปรนี้จะใช้เชื่อมต่อกับฐานข้อมูลโดยตรง
+const prisma = new PrismaClient({
+  datasources: {
+    db: {
+      url: "postgresql://postgres.bqpwwlfquropbmsvratz:BaanMaeVilla2026@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres?pgbouncer=true"
+    }
+  }
+});
 
 async function createAdmin() {
   const email = process.argv[2];
@@ -23,33 +22,29 @@ async function createAdmin() {
 
   if (!email || !password) {
     console.error('❌ Usage: node scripts/create-admin.mjs <email> <password>');
-    console.error('   Example: node scripts/create-admin.mjs admin@baanmaevilla.com mySecurePassword123');
+    console.error('   Example: node scripts/create-admin.mjs test@baanmae.com 123456');
     process.exit(1);
   }
 
   try {
-    console.log('🔗 Connecting to database...');
+    console.log('🔗 Connecting to Supabase database...');
     await prisma.$connect();
     console.log('✅ Connected to database');
 
-    // Check if user already exists
     const existing = await prisma.user.findUnique({
       where: { email },
     });
 
     if (existing) {
       console.log(`⚠️  User with email ${email} already exists`);
-      console.log('   Role:', existing.role);
       process.exit(0);
     }
 
-    // Hash password
     console.log('🔐 Hashing password...');
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    // Create admin user
     console.log('👤 Creating admin user...');
-    const user = await prisma.user.create({
+    await prisma.user.create({
       data: {
         email,
         password: hashedPassword,
@@ -58,9 +53,7 @@ async function createAdmin() {
     });
 
     console.log('✅ Admin user created successfully!');
-    console.log('   Email:', user.email);
-    console.log('   Role:', user.role);
-    console.log('   ID:', user.id);
+    console.log('   You can now login at https://baan-mae-villa.vercel.app/admin');
   } catch (error) {
     console.error('❌ Error creating admin user:', error);
     process.exit(1);
