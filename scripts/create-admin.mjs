@@ -14,7 +14,7 @@ if (!process.env.DATABASE_URL) {
   process.exit(1);
 }
 
-// Simple PrismaClient constructor
+// Simple PrismaClient constructor (Prisma 7 will auto-read DATABASE_URL from env)
 const prisma = new PrismaClient();
 
 async function createAdmin() {
