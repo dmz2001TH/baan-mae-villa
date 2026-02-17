@@ -4,16 +4,18 @@ import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import dotenv from 'dotenv';
 
-// Load .env.local
-dotenv.config({ path: '.env.local' });
+// Load .env file
+dotenv.config({ path: '.env' });
 
-const prisma = new PrismaClient({
-  datasources: {
-    db: {
-      url: process.env.DATABASE_URL,
-    },
-  },
-});
+// Check DATABASE_URL
+if (!process.env.DATABASE_URL) {
+  console.error('❌ DATABASE_URL not found in .env file');
+  console.error('   Please add DATABASE_URL=postgresql://... to your .env file');
+  process.exit(1);
+}
+
+// Simple PrismaClient constructor
+const prisma = new PrismaClient();
 
 async function createAdmin() {
   const email = process.argv[2];
